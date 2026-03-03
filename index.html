@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الخطة الاستراتيجية وعرض السعر - فيكس فون</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            900: '#020617',
+                            800: '#0f172a',
+                            700: '#1e293b',
+                        },
+                        brand: {
+                            blue: '#38bdf8',
+                            gold: '#f59e0b',
+                            indigo: '#818cf8',
+                        }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-15px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base Setup */
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background-color: #020617; 
+            color: #e2e8f0; 
+            scroll-behavior: smooth;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(129, 140, 248, 0.08) 0%, transparent 25%);
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+
+        /* Advanced Glassmorphism */
+        .glass-card { 
+            background: rgba(15, 23, 42, 0.4); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            background: rgba(15, 23, 42, 0.6); 
+            border-color: rgba(56, 189, 248, 0.3);
+            box-shadow: 0 20px 40px -10px rgba(56, 189, 248, 0.15);
+        }
+
+        /* Typography Enhancements */
+        h1, h2, h3, h4, h5, h6 { letter-spacing: -0.02em; }
+        p { line-height: 1.8; }
+
+        .gradient-text { 
+            background: linear-gradient(135deg, #38bdf8 0%, #a5b4fc 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            display: inline-block;
+        }
+        
+        /* Section Titles */
+        .section-title { 
+            position: relative; 
+            display: inline-block; 
+            margin-bottom: 3.5rem;
+            font-size: 2.25rem;
+            font-weight: 800;
+        }
+        .section-title::after { 
+            content: ''; 
+            position: absolute; 
+            bottom: -1rem; 
+            right: 0; 
+            width: 60px; 
+            height: 4px; 
+            background: linear-gradient(90deg, #38bdf8, transparent); 
+            border-radius: 2px;
+        }
+
+        /* Animations */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Visual Elements */
+        .glow-orb {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(56,189,248,0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Timeline Stepper Polish */
+        .step-circle { 
+            width: 3.5rem; 
+            height: 3.5rem; 
+            background: #0f172a; 
+            border: 2px solid rgba(56,189,248,0.3); 
+            color: #38bdf8; 
+            box-shadow: 0 0 20px rgba(56,189,248,0.1);
+            transition: all 0.3s ease;
+        }
+        .group:hover .step-circle {
+            border-color: #38bdf8;
+            background: rgba(56,189,248,0.1);
+            transform: scale(1.1);
+        }
+
+        /* CSS Devices Polish */
+        .device-icon { 
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            position: relative;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+        }
+
+        /* Mobile Icon Shape */
+        .mobile-icon { 
+            width: 36px; 
+            height: 60px; 
+            border-radius: 8px; 
+        }
+        .mobile-icon::after { 
+            content: ''; 
+            position: absolute; 
+            bottom: 4px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 4px; 
+            height: 4px; 
+            background: #38bdf8; 
+            border-radius: 50%; 
+            box-shadow: 0 0 5px #38bdf8;
+        }
+
+        /* Tablet Icon Shape */
+        .tablet-icon { 
+            width: 60px; 
+            height: 75px; 
+            border-radius: 10px; 
+        }
+        .tablet-icon::after { 
+            content: ''; 
+            position: absolute; 
+            bottom: 5px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 5px; 
+            height: 5px; 
+            background: #38bdf8; 
+            border-radius: 50%; 
+            box-shadow: 0 0 5px #38bdf8;
+        }
+
+        /* Desktop Icon Shape */
+        .desktop-icon { 
+            width: 100px; 
+            height: 65px; 
+            border-radius: 6px; 
+            margin-bottom: 12px;
+        }
+        .desktop-stand { 
+            position: absolute; 
+            bottom: -12px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 12px; 
+            height: 12px; 
+            background: #1e293b; 
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-top: none;
+        }
+        .desktop-stand::after { 
+            content: ''; 
+            position: absolute; 
+            bottom: -4px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 30px; 
+            height: 4px; 
+            background: #38bdf8; 
+            border-radius: 4px; 
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+        }
+
+        /* Watermark */
+        .watermark { position: fixed; bottom: 30px; left: 30px; z-index: 1000; opacity: 0.6; transition: all 0.4s ease; width: 60px; filter: grayscale(100%); }
+        .watermark:hover { opacity: 1; transform: scale(1.1); filter: grayscale(0%); }
+        
+        /* Table Styles */
+        .custom-table th { font-weight: 800; letter-spacing: 0.05em; }
+        .custom-table tr:last-child td { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Watermark Link -->
+    <a href="https://richline.sa/" target="_blank" class="watermark group" title="Visit Richline Agency">
+        <img src="https://i.ibb.co/XfxF1p9p/file.jpg" alt="Richline Logo" class="rounded-xl shadow-lg border border-white/10">
+    </a>
+
+    <!-- Header -->
+    <header class="relative min-h-[90vh] flex flex-col justify-center items-center text-center px-6 overflow-hidden">
+        <!-- Background Ambience -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-brand-blue/5 blur-[120px] rounded-full -z-10 animate-pulse-slow"></div>
+        <div class="absolute bottom-0 right-0 w-[800px] h-[500px] bg-brand-indigo/5 blur-[120px] rounded-full -z-10"></div>
+        
+        <!-- Logo Area Linked to Fixphone -->
+        <a href="https://fixphone-ksa.com/" target="_blank" class="relative group mb-8 block z-20 cursor-pointer">
+            <div class="absolute inset-0 bg-brand-blue/30 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div class="relative h-36 w-36 rounded-[2.5rem] shadow-[0_0_40px_rgba(56,189,248,0.15)] border border-white/10 animate-float bg-navy-800/80 backdrop-blur-md flex items-center justify-center p-4 group-hover:scale-105 transition-transform duration-500">
+                <img src="https://i.postimg.cc/VsD5tMhp/imgi-15-asfr-abyd.png" alt="فيكس فون - Fixphone" class="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+            </div>
+        </a>
+        
+        <!-- Title Area -->
+        <div class="space-y-6 max-w-4xl relative z-10">
+            <h1 class="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 tracking-tight leading-tight drop-shadow-sm">
+                فيكس فون
+            </h1>
+            <div class="flex items-center justify-center gap-4">
+                <div class="h-[1px] w-12 bg-gradient-to-r from-transparent to-brand-blue"></div>
+                <p class="text-brand-blue font-bold uppercase tracking-[0.3em] text-sm md:text-base">Strategic Marketing & Action Plan</p>
+                <div class="h-[1px] w-12 bg-gradient-to-l from-transparent to-brand-blue"></div>
+            </div>
+        </div>
+
+        <!-- Meta Info -->
+        <div class="mt-16 flex flex-wrap justify-center gap-4 md:gap-8 text-slate-400 text-xs font-bold uppercase tracking-widest">
+            <span class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/5 backdrop-blur-sm">
+                <span class="text-brand-gold">📍</span> الرياض، المملكة العربية السعودية
+            </span>
+            <span class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/5 backdrop-blur-sm">
+                <span class="text-brand-blue">🎯</span> صيانة متنقلة وحملات رقمية
+            </span>
+        </div>
+        
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-50">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 max-w-7xl space-y-32 pb-48">
+
+        <!-- 1. Executive Summary -->
+        <section class="reveal-on-scroll">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
+                <div>
+                    <span class="text-brand-blue font-bold tracking-wider text-sm block mb-2">01</span>
+                    <h2 class="section-title !mb-0 text-white">الرؤية الاستراتيجية والأهداف</h2>
+                </div>
+                <p class="text-slate-400 max-w-2xl leading-relaxed text-lg text-justify md:text-right border-r-2 border-slate-800 pr-6">
+                    يشهد قطاع صيانة الأجهزة الذكية تحولات هيكلية عميقة نحو نماذج <strong class="text-white">"الصيانة المتنقلة"</strong>. يهدف هذا العرض إلى تحويل منصة فيكس فون إلى محرك فعّال لتوليد الطلبات المباشرة، مع سد الفجوات التقنية لمضاعفة معدلات التحويل.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass-card rounded-[2rem] !p-8 group">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-blue/20 to-transparent flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">🎯</div>
+                    <h3 class="text-xl font-bold text-white mb-3 group-hover:text-brand-blue transition-colors">توليد الطلبات</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">استقطاب العملاء ذوي النية الشرائية العالية وزيادة المكالمات وحجوزات الواتساب.</p>
+                </div>
+                <div class="glass-card rounded-[2rem] !p-8 group">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-indigo/20 to-transparent flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">📉</div>
+                    <h3 class="text-xl font-bold text-white mb-3 group-hover:text-brand-indigo transition-colors">تقليل التكلفة (CPA)</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">تحسين الحملات بشكل مستمر لخفض تكلفة الاستحواذ على العميل الواحد.</p>
+                </div>
+                <div class="glass-card rounded-[2rem] !p-8 group">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-gold/20 to-transparent flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">🔄</div>
+                    <h3 class="text-xl font-bold text-white mb-3 group-hover:text-brand-gold transition-colors">إعادة الاستهداف</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">بناء أصول رقمية وقاعدة بيانات قوية لإعادة الاستهداف داخل النطاق الجغرافي.</p>
+                </div>
+                <div class="glass-card rounded-[2rem] !p-8 group">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-transparent flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">⚖️</div>
+                    <h3 class="text-xl font-bold text-white mb-3 group-hover:text-emerald-400 transition-colors">الامتثال والموثوقية</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">معالجة الأخطاء الصفرية وإضافة السجل التجاري لتعزيز مصداقية المنصة.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Tech Infrastructure -->
+        <section class="reveal-on-scroll">
+            <span class="text-brand-blue font-bold tracking-wider text-sm block mb-2">02</span>
+            <h2 class="section-title">التحديات التقنية ومؤشرات الأداء</h2>
+            
+            <div class="glass-card rounded-[2.5rem] p-0 overflow-hidden grid grid-cols-1 lg:grid-cols-5 border-0">
+                <div class="lg:col-span-2 bg-gradient-to-br from-brand-blue/20 via-navy-900 to-navy-900 p-10 flex flex-col justify-center relative">
+                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                    <h3 class="text-4xl font-black text-white mb-6 relative z-10">لماذا <br><span class="text-brand-blue">السرعة والثقة</span>؟</h3>
+                    <p class="text-slate-300 leading-relaxed text-sm relative z-10">
+                        لضمان عدم إهدار الميزانية الإعلانية، سنعمل بالتوازي على التوجيه بحل الإشكاليات الهيكلية التي كشفها التقرير الاستراتيجي لرفع معدلات التحويل.
+                    </p>
+                </div>
+                <div class="lg:col-span-3 p-10 grid grid-cols-1 md:grid-cols-2 gap-6 bg-navy-800/50">
+                    <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors">
+                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-blue/20 flex items-center justify-center text-brand-blue text-sm">⚠️</span>
+                        <div>
+                            <h4 class="font-bold text-white mb-1">إشكاليات الزحف (SEO)</h4>
+                            <p class="text-xs text-slate-500">حظر مسارات هامة في Robots.txt.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors">
+                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-blue/20 flex items-center justify-center text-brand-blue text-sm">⏱️</span>
+                        <div>
+                            <h4 class="font-bold text-white mb-1">أداء Lighthouse</h4>
+                            <p class="text-xs text-slate-500">الحاجة لتقليص وقت تنفيذ JS لرفع Speed Index.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors">
+                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-blue/20 flex items-center justify-center text-brand-blue text-sm">📱</span>
+                        <div>
+                            <h4 class="font-bold text-white mb-1">التوافق مع الجوال</h4>
+                            <p class="text-xs text-slate-500">61% يغادرون المواقع غير المتجاوبة فوراً.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-white/5 transition-colors">
+                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-blue/20 flex items-center justify-center text-brand-blue text-sm">0️⃣</span>
+                        <div>
+                            <h4 class="font-bold text-white mb-1">البيانات الصفرية</h4>
+                            <p class="text-xs text-slate-500">(+0 فني) يخلق تناقضاً ويضرب الثقة.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Structure -->
+        <section class="reveal-on-scroll">
+            <span class="text-brand-blue font-bold tracking-wider text-sm block mb-2">03</span>
+            <h2 class="section-title">نطاق الاستهداف والحملات</h2>
+            
+            <div class="glass-card rounded-[3rem] p-12 relative overflow-hidden">
+                <!-- Background decoration -->
+                <div class="absolute -right-20 -top-20 w-96 h-96 bg-brand-indigo/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 relative z-10">
+                    <div class="space-y-8">
+                        <h4 class="text-brand-indigo font-black text-2xl flex items-center gap-3">
+                            <span class="w-3 h-3 bg-brand-indigo rounded-full shadow-[0_0_10px_#818cf8]"></span>
+                            تقسيم الحملات الجغرافية
+                        </h4>
+                        <div class="space-y-4 pr-4 border-r border-brand-indigo/20">
+                            <div class="group p-5 bg-navy-900/80 rounded-2xl border border-white/5 hover:border-brand-indigo/50 transition-all flex justify-between items-center cursor-default">
+                                <span class="text-white font-semibold">صيانة iPhone</span>
+                                <span class="text-[10px] text-brand-indigo font-bold tracking-widest opacity-50 group-hover:opacity-100">APPLE</span>
+                            </div>
+                            <div class="group p-5 bg-navy-900/80 rounded-2xl border border-white/5 hover:border-brand-indigo/50 transition-all flex justify-between items-center cursor-default">
+                                <span class="text-white font-semibold">صيانة Samsung</span>
+                                <span class="text-[10px] text-brand-indigo font-bold tracking-widest opacity-50 group-hover:opacity-100">ANDROID</span>
+                            </div>
+                            <div class="group p-5 bg-navy-900/80 rounded-2xl border border-white/5 hover:border-brand-indigo/50 transition-all flex justify-between items-center cursor-default">
+                                <span class="text-white font-semibold">كسر الشاشة / البطاريات</span>
+                                <span class="text-[10px] text-brand-indigo font-bold tracking-widest opacity-50 group-hover:opacity-100">HARDWARE</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-8">
+                        <h4 class="text-brand-blue font-black text-2xl flex items-center gap-3">
+                            <span class="w-3 h-3 bg-brand-blue rounded-full shadow-[0_0_10px_#38bdf8]"></span>
+                            المنصات الإعلانية المعتمدة
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 bg-navy-900 rounded-xl border border-white/5 text-center text-sm font-bold text-slate-300 hover:bg-navy-800 hover:text-white transition-colors">Google Search (الأولوية)</div>
+                            <div class="p-4 bg-navy-900 rounded-xl border border-white/5 text-center text-sm font-bold text-slate-300 hover:bg-navy-800 hover:text-white transition-colors">Snapchat Ads</div>
+                            <div class="p-4 bg-navy-900 rounded-xl border border-white/5 text-center text-sm font-bold text-slate-300 hover:bg-navy-800 hover:text-white transition-colors">Instagram Ads</div>
+                            <div class="p-4 bg-navy-900 rounded-xl border border-white/5 text-center text-sm font-bold text-slate-300 hover:bg-navy-800 hover:text-white transition-colors">Meta Pixel</div>
+                            <div class="col-span-2 p-4 bg-navy-900 rounded-xl border border-white/5 text-center text-sm font-bold text-brand-gold bg-brand-gold/10 hover:bg-brand-gold/20 transition-colors">الاستهداف: مدينة الرياض فقط (أحياء ذات كثافة عالية)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Competitive Dynamics -->
+        <section class="reveal-on-scroll">
+            <span class="text-brand-blue font-bold tracking-wider text-sm block mb-2">04</span>
+            <h2 class="section-title">الديناميكية التنافسية</h2>
+            
+            <div class="glass-card rounded-[2.5rem] !p-10">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
+                    <div class="lg:col-span-1">
+                         <h3 class="text-3xl font-bold text-white mb-6 leading-tight">التفوق في <br><span class="text-brand-blue">سوق الرياض</span></h3>
+                         <p class="text-slate-400 leading-relaxed text-sm">
+                            أظهر التحليل وجود نماذج تشغيلية تسحب الحصة السوقية عبر استراتيجيات مبتكرة. يفرض هذا المشهد ضرورة تطوير نقاط القوة التنافسية لـ "فيكس فون".
+                        </p>
+                    </div>
+                    <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="p-6 bg-gradient-to-b from-navy-800 to-navy-900 border border-white/5 rounded-2xl text-center group hover:-translate-y-2 transition-transform">
+                            <div class="text-brand-blue font-black text-4xl mb-3 group-hover:scale-110 transition-transform inline-block">💵</div>
+                            <h5 class="text-white font-bold mb-1">الشفافية السعرية</h5>
+                            <p class="text-[10px] text-slate-500">وضوح الأسعار المبدئية</p>
+                        </div>
+                        <div class="p-6 bg-gradient-to-b from-navy-800 to-navy-900 border border-white/5 rounded-2xl text-center group hover:-translate-y-2 transition-transform">
+                            <div class="text-brand-blue font-black text-4xl mb-3 group-hover:scale-110 transition-transform inline-block">💳</div>
+                            <h5 class="text-white font-bold mb-1">خيارات الدفع</h5>
+                            <p class="text-[10px] text-slate-500">توفير أنظمة مثل (تمارا)</p>
+                        </div>
+                        <div class="p-6 bg-gradient-to-b from-navy-800 to-navy-900 border border-white/5 rounded-2xl text-center group hover:-translate-y-2 transition-transform">
+                            <div class="text-brand-blue font-black text-4xl mb-3 group-hover:scale-110 transition-transform inline-block">🚀</div>
+                            <h5 class="text-white font-bold mb-1">الاستجابة الميدانية</h5>
+                            <p class="text-[10px] text-slate-500">التوصيل السريع (20-40 دقيقة)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. SEO Details -> Compliance and Trust -->
+        <section class="reveal-on-scroll">
+            <span class="text-brand-blue font-bold tracking-wider text-sm block mb-2">05</span>
+            <h2 class="section-title">معايير الامتثال والموثوقية</h2>
+            <div class="glass-card rounded-[2.5rem] !p-12 border-r-8 border-brand-gold relative overflow-hidden">
+                <div class="absolute -left-10 top-0 w-64 h-full bg-gradient-to-r from-brand-gold/10 to-transparent"></div>
+                
+                <div class="relative z-10">
+                    <p class="text-slate-300 mb-8 leading-relaxed text-lg max-w-3xl">
+                        لبناء مسار تحويل ناجح، يجب سد الفجوات التي قد تصنف الموقع ذهنياً كورشة غير رسمية. سنعمل على التوجيه لإضافة عناصر الثقة القانونية والتجارية للمستهلك.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <span class="px-6 py-3 bg-navy-900 border border-white/10 rounded-full text-sm font-bold text-white hover:border-brand-gold hover:text-brand-gold transition-all cursor-default shadow-lg">رقم السجل التجاري</span>
+                        <span class="px-6 py-3 bg-navy-900 border border-white/10 rounded-full text-sm font-bold text-white hover:border-brand-gold hover:text-brand-gold transition-all cursor-default shadow-lg">الرقم الضريبي</span>
+                        <span class="px-6 py-3 bg-navy-900 border border-white/10 rounded-full text-sm font-bold text-white hover:border-brand-gold hover:text-brand-gold transition-all cursor-default shadow-lg">توثيق المركز السعودي للأعمال</span>
+                        <span class="px-6 py-3 bg-navy-900 border border-white/10 rounded-full text-sm font-bold text-white hover:border-brand-gold hover:text-brand-gold transition-all cursor-default shadow-lg">تفعيل تواصل معنا</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. UI/UX -->
+        <section class="reveal-on-scroll">
+            <span class="text-brand-blue font-bold tracking-wider text-sm block mb-2">06</span>
+            <h2 class="section-title">تجربة المستخدم (UX)</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8">
+                    <h3 class="text-4xl font-black text-white leading-tight">مسار تحويل <br><span class="text-brand-blue">بدون احتكاك</span></h3>
+                    <p class="text-slate-400 leading-relaxed text-lg">
+                        يُعتبر الافتقار للأسعار المبدئية أو الواضحة سبباً لانسحاب "العملاء المستعجلين". نوجه بتحسين رحلة المستخدم لتكون سريعة، شفافة، ومتوافقة بنسبة 100% مع الجوال.
+                    </p>
+                    <div class="flex gap-4">
+                        <div class="flex-1 p-4 bg-white/5 rounded-2xl border border-white/5">
+                            <h4 class="text-brand-blue font-bold mb-1">Mobile First</h4>
+                            <p class="text-xs text-slate-500">أولوية مطلقة للهاتف المحمول</p>
+                        </div>
+                        <div class="flex-1 p-4 bg-white/5 rounded-2xl border border-white/5">
+                            <h4 class="text-brand-blue font-bold mb-1">Clear Pricing</h4>
+                            <p class="text-xs text-slate-500">وضوح وعروض مباشرة</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-[3rem] p-10 bg-gradient-to-br from-white/5 to-transparent">
+                    <div class="flex justify-center items-end gap-6 text-center">
+                         <div class="group">
+                            <div class="device-icon mobile-icon mx-auto mb-4 group-hover:border-brand-blue transition-colors bg-navy-900"></div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mobile</p>
+                         </div>
+                         <div class="group">
+                            <div class="device-icon tablet-icon mx-auto mb-4 group-hover:border-brand-blue transition-colors bg-navy-900"></div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tablet</p>
+                         </div>
+                         <div class="group">
+                            <div class="device-icon desktop-icon mx-auto mb-4 group-hover:border-brand-blue transition-colors bg-navy-900">
+                                <div class="desktop-stand"></div>
+                            </div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Desktop</p>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Analytics, Tables and Charts -->
+        <section class="reveal-on-scroll">
+            <span class="text-brand-blue font-bold tracking-wider text-sm block mb-2">07</span>
+            <h2 class="section-title">التحليل البياني والتنافسي</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Speed Index Table -->
+                <div class="glass-card rounded-[2rem] p-8 flex flex-col">
+                    <h3 class="text-xl font-bold text-white mb-6">معايير تقييم مؤشر السرعة (Speed Index)</h3>
+                    <div class="overflow-x-auto flex-grow">
+                        <table class="w-full text-sm text-right custom-table">
+                            <thead class="text-xs text-slate-400 uppercase bg-navy-900/80">
+                                <tr>
+                                    <th class="px-4 py-4 rounded-tr-xl">الأداء اللوني</th>
+                                    <th class="px-4 py-4 text-center">النطاق (بالثواني)</th>
+                                    <th class="px-4 py-4 rounded-tl-xl">التقييم الفني</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-300">
+                                <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                    <td class="px-4 py-4 font-bold text-emerald-400">الأخضر (مستهدف)</td>
+                                    <td class="px-4 py-4 text-center">0 – 3.4</td>
+                                    <td class="px-4 py-4">استجابة سريعة ومثالية</td>
+                                </tr>
+                                <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                    <td class="px-4 py-4 font-bold text-brand-gold">البرتقالي</td>
+                                    <td class="px-4 py-4 text-center">3.4 – 5.8</td>
+                                    <td class="px-4 py-4">أداء متوسط (يتطلب تحسين)</td>
+                                </tr>
+                                <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                    <td class="px-4 py-4 font-bold text-red-400">الأحمر</td>
+                                    <td class="px-4 py-4 text-center">أكثر من 5.8</td>
+                                    <td class="px-4 py-4">كمون عالٍ وبطء شديد</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Market Share Matrix -->
+                <div class="glass-card rounded-[2rem] p-8 flex flex-col">
+                    <h3 class="text-xl font-bold text-white mb-6">مصفوفة القدرات التنافسية بالرياض</h3>
+                    <div class="overflow-x-auto flex-grow">
+                        <table class="w-full text-sm text-right custom-table">
+                            <thead class="text-xs text-slate-400 uppercase bg-navy-900/80">
+                                <tr>
+                                    <th class="px-4 py-4 rounded-tr-xl">المنصة / الكيان</th>
+                                    <th class="px-4 py-4">القيمة التنافسية</th>
+                                    <th class="px-4 py-4 rounded-tl-xl">الشفافية السعرية</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-300">
+                                <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                    <td class="px-4 py-4 font-bold text-white">دكتور فون (Dr. Phone)</td>
+                                    <td class="px-4 py-4">سرعة 30 دقيقة، توفر 24/7</td>
+                                    <td class="px-4 py-4 text-emerald-400">شفافة ومباشرة</td>
+                                </tr>
+                                <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                    <td class="px-4 py-4 font-bold text-white">موج تيك (Moj Tec)</td>
+                                    <td class="px-4 py-4">تسويق بالمحتوى، عمل مسائي</td>
+                                    <td class="px-4 py-4 text-emerald-400">عالية الموثوقية</td>
+                                </tr>
+                                <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                    <td class="px-4 py-4 font-bold text-white">المستقلون (حراج)</td>
+                                    <td class="px-4 py-4">أسعار انهيارية، ضمان 6 أشهر</td>
+                                    <td class="px-4 py-4 text-emerald-400">مدرجة بالإعلانات</td>
+                                </tr>
+                                <tr class="bg-brand-blue/10 border-brand-blue/20 rounded-xl relative">
+                                    <td class="px-4 py-4 font-bold text-brand-blue rounded-tr-xl rounded-br-xl">فيكس فون (الحالي)</td>
+                                    <td class="px-4 py-4 text-brand-blue">استجابة 20-40 دقيقة</td>
+                                    <td class="px-4 py-4 text-red-400 rounded-tl-xl rounded-bl-xl">معدومة (المحادثة فقط)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Chart -->
+            <div class="glass-card rounded-[2rem] p-8 md:p-12 relative overflow-hidden">
+                <div class="absolute -right-20 top-1/2 -translate-y-1/2 w-64 h-64 bg-brand-blue/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <h3 class="text-2xl font-bold text-white mb-2">توقعات نمو التحويلات وانخفاض التكلفة (CPA)</h3>
+                <p class="text-sm text-slate-400 mb-8">استناداً إلى معطيات السوق في الرياض، التحسين التقني المقترح، وإطلاق الحملات تدريجياً.</p>
+                
+                <div class="relative h-[350px] w-full">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specs Grid -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 reveal-on-scroll">
+            <div class="glass-card rounded-3xl !p-8 hover:bg-navy-800/80 transition-colors">
+                <h4 class="text-lg font-bold text-white mb-3">التأسيس والتحليل</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">دراسة السوق المحلية وتحليل الكلمات المفتاحية المباشرة داخل الرياض.</p>
+            </div>
+            <div class="glass-card rounded-3xl !p-8 hover:bg-navy-800/80 transition-colors">
+                <h4 class="text-lg font-bold text-white mb-3">التصاميم والمحتوى</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">تصميم تصاميم إعلانية شهرياً وكتابة محتوى تفاعلي يحفز على اتخاذ القرار (Call to Action).</p>
+            </div>
+            <div class="glass-card rounded-3xl !p-8 hover:bg-navy-800/80 transition-colors">
+                <h4 class="text-lg font-bold text-white mb-3">التحسين والتقارير</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">تحسين يومي للحملات، تركيب أكواد التتبع، وتقديم تقرير أداء شهري مفصل.</p>
+            </div>
+        </section>
+
+        <!-- Timeline -->
+        <section class="reveal-on-scroll bg-navy-900/30 rounded-[3rem] p-12 border border-white/5">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-black text-white mb-2">خارطة الطريق</h2>
+                <p class="text-brand-blue font-medium">مراحل إطلاق وتحسين الحملات</p>
+            </div>
+            
+            <div class="relative">
+                <!-- Connecting Line (Desktop) -->
+                <div class="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-brand-blue/30 to-transparent -translate-y-8 z-0"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+                    <div class="flex flex-col items-center text-center group">
+                        <div class="step-circle rounded-full flex items-center justify-center text-xl font-black bg-navy-900 mb-6">1</div>
+                        <h5 class="text-white font-bold mb-2">التحليل</h5>
+                        <p class="text-xs text-slate-500">دراسة الكلمات وتحديد الجمهور</p>
+                    </div>
+                    <div class="flex flex-col items-center text-center group">
+                        <div class="step-circle rounded-full flex items-center justify-center text-xl font-black bg-navy-900 mb-6">2</div>
+                        <h5 class="text-white font-bold mb-2">الإعداد</h5>
+                        <p class="text-xs text-slate-500">هيكلة الإعلانات وتركيب التتبع</p>
+                    </div>
+                    <div class="flex flex-col items-center text-center group">
+                        <div class="step-circle rounded-full flex items-center justify-center text-xl font-black bg-navy-900 mb-6">3</div>
+                        <h5 class="text-white font-bold mb-2">الإطلاق</h5>
+                        <p class="text-xs text-slate-500">بدء الحملات على جوجل ومنصات التواصل</p>
+                    </div>
+                    <div class="flex flex-col items-center text-center group">
+                        <div class="step-circle rounded-full flex items-center justify-center text-xl font-black bg-navy-900 mb-6 border-brand-gold text-brand-gold shadow-[0_0_15px_rgba(245,158,11,0.2)]">4</div>
+                        <h5 class="text-white font-bold mb-2">التحسين</h5>
+                        <p class="text-xs text-slate-500">اختبار A/B وإعادة الاستهداف</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="reveal-on-scroll">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-black text-white uppercase tracking-widest">الاستثمار المالي</h2>
+                <div class="w-24 h-1.5 bg-gradient-to-r from-brand-blue to-brand-gold mx-auto mt-6 rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- 1 Month Plan -->
+                <div class="glass-card rounded-[2.5rem] !p-8 hover:border-brand-blue/50 group flex flex-col">
+                    <div class="mb-8">
+                        <h4 class="text-xl font-black text-white mb-2">باقة شهر واحد</h4>
+                        <div class="h-1 w-12 bg-brand-blue rounded-full mb-6"></div>
+                        <div class="text-right">
+                            <span class="text-4xl font-black text-white leading-none group-hover:text-brand-blue transition-colors">2,200</span>
+                            <span class="text-xs font-bold text-slate-500 block mt-2">ريال سعودي</span>
+                        </div>
+                    </div>
+                    <ul class="space-y-4 text-sm text-slate-400 flex-grow">
+                        <li class="flex items-center gap-3"><span class="text-brand-blue">✔</span> إدارة كاملة للحملات</li>
+                        <li class="flex items-center gap-3"><span class="text-brand-blue">✔</span> 4 تصاميم إعلانية</li>
+                        <li class="flex items-center gap-3"><span class="text-brand-blue">✔</span> إعداد وتتبع التحويلات</li>
+                        <li class="flex items-center gap-3"><span class="text-brand-blue">✔</span> تقرير أداء شهري</li>
+                    </ul>
+                </div>
+
+                <!-- 2 Months Plan -->
+                <div class="glass-card rounded-[2.5rem] !p-8 hover:border-brand-blue/50 group flex flex-col">
+                    <div class="mb-8">
+                        <h4 class="text-xl font-black text-white mb-2">باقة شهرين</h4>
+                        <div class="h-1 w-12 bg-brand-blue rounded-full mb-6"></div>
+                        <div class="text-right">
+                            <span class="text-4xl font-black text-white leading-none group-hover:text-brand-blue transition-colors">4,199</span>
+                            <span class="text-xs font-bold text-slate-500 block mt-2">ريال سعودي</span>
+                        </div>
+                    </div>
+                    <ul class="space-y-4 text-sm text-slate-400 flex-grow">
+                        <li class="flex items-center gap-3"><span class="text-brand-blue">✔</span> إدارة وتحسين مستمر</li>
+                        <li class="flex items-center gap-3"><span class="text-brand-blue">✔</span> 8 تصاميم إعلانية</li>
+                        <li class="flex items-center gap-3"><span class="text-brand-blue">✔</span> إعادة استهداف احترافية</li>
+                        <li class="flex items-center gap-3"><span class="text-brand-blue">✔</span> اختبار A/B موسع</li>
+                    </ul>
+                </div>
+
+                <!-- 3 Months Plan (Premium) -->
+                <div class="glass-card rounded-[2.5rem] !p-8 border-brand-gold/30 hover:border-brand-gold group relative overflow-hidden flex flex-col transform md:-translate-y-4 shadow-2xl">
+                    <div class="absolute top-0 right-0 bg-brand-gold text-navy-900 text-[10px] font-black px-4 py-1 rounded-bl-xl">RECOMMENDED</div>
+                    
+                    <div class="mb-8">
+                        <h4 class="text-xl font-black text-white mb-2">باقة 3 شهور - العرض الأقوى</h4>
+                        <div class="h-1 w-12 bg-brand-gold rounded-full mb-6"></div>
+                        <div class="text-right">
+                            <span class="text-5xl font-black text-brand-gold leading-none">5,600</span>
+                            <span class="text-xs font-bold text-slate-500 block mt-2">ريال سعودي</span>
+                        </div>
+                    </div>
+                    
+                    <div class="inline-block px-4 py-2 rounded-lg bg-brand-gold/10 text-brand-gold text-xs font-bold mb-6 w-full text-center border border-brand-gold/20">
+                        أقل تكلفة شهرية (1,866 ريال تقريباً)
+                    </div>
+                    
+                    <ul class="space-y-4 text-sm text-slate-400 flex-grow">
+                        <li class="flex items-center gap-3"><span class="text-brand-gold">✔</span> مرحلة اختبار + تحسين + توسع</li>
+                        <li class="flex items-center gap-3"><span class="text-brand-gold">✔</span> بناء جمهور إعادة استهداف قوي</li>
+                        <li class="flex items-center gap-3"><span class="text-brand-gold">✔</span> رفع معدل التحويل تدريجياً</li>
+                        <li class="flex items-center gap-3"><span class="text-brand-gold">✔</span> تحقيق نمو فعلي ومستدام</li>
+                        <li class="flex items-center gap-3"><span class="text-brand-gold">✔</span> دعم فني ومدير حساب مخصص</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center text-xs text-slate-500">
+                * الأسعار الموضحة تمثل أتعاب إدارة الحملات، ولا تشمل الميزانية التي سيتم ضخها في المنصات الإعلانية.
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-navy-900 border-t border-white/5 pt-32 pb-16 px-6 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-80 pointer-events-none"></div>
+        
+        <div class="container mx-auto text-center space-y-16 relative z-10">
+            <div class="flex flex-col items-center gap-8">
+                <img src="https://i.ibb.co/XfxF1p9p/file.jpg" alt="Richline Agency" class="h-24 w-auto rounded-3xl shadow-2xl hover:scale-105 transition-transform duration-500 border border-white/10 opacity-80 hover:opacity-100">
+                <div class="max-w-2xl">
+                    <h5 class="text-2xl font-black text-white mb-6 italic tracking-tight">Richline Strategic Agency</h5>
+                    <p class="text-slate-500 text-lg leading-relaxed">
+                        نحن لا ندير الحملات الإعلانية فقط، بل نبني لك مسار تحويل متكامل يضمن أعلى عائد لاستثمارك.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-8 md:gap-16 text-xs font-bold text-slate-600 uppercase tracking-[0.2em]">
+                <a href="https://richline.sa/" class="hover:text-brand-blue transition-colors hover:scale-110 transform duration-300">الموقع الرسمي</a>
+                <a href="#" class="hover:text-brand-blue transition-colors hover:scale-110 transform duration-300">تواصل معنا</a>
+                <a href="#" class="hover:text-brand-blue transition-colors hover:scale-110 transform duration-300">المشاريع</a>
+            </div>
+
+            <div class="pt-12 border-t border-white/5">
+                <p class="text-[10px] text-slate-700 font-bold tracking-[0.4em] uppercase">
+                    POWERED BY <span class="text-brand-blue">RICHLINE AGENCY</span> &copy; 2024
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple Intersection Observer for scroll animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal-on-scroll').forEach((element) => {
+            observer.observe(element);
+        });
+
+        // Initialize Performance Chart
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = "'Cairo', sans-serif";
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['الشهر الأول', 'الشهر الثاني', 'الشهر الثالث'],
+                    datasets: [
+                        {
+                            label: 'نمو التحويلات (Conversions) %',
+                            data: [1.8, 3.5, 6.2],
+                            borderColor: '#38bdf8',
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#020617',
+                            pointBorderColor: '#38bdf8',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y'
+                        }, 
+                        {
+                            label: 'تكلفة الطلب / الاستحواذ (CPA) بالريال',
+                            data: [85, 55, 30],
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.0)',
+                            borderWidth: 3,
+                            borderDash: [5, 5],
+                            pointBackgroundColor: '#020617',
+                            pointBorderColor: '#f59e0b',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'معدل التحويل (%)',
+                                color: '#38bdf8'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'التكلفة (ريال سعودي)',
+                                color: '#f59e0b'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8,
+                                font: {
+                                    size: 13,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#fff',
+                            bodyColor: '#cbd5e1',
+                            borderColor: 'rgba(56, 189, 248, 0.3)',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
